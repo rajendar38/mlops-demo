@@ -1,0 +1,79 @@
+import yaml
+from jinja2 import Environment, FileSystemLoader
+import os
+
+if __name__ == "__main__":
+    # Load values from YAML file
+    with open('./test.yaml', 'r') as f:
+        values = yaml.safe_load(f)
+
+    # Load Jinja environment
+    env = Environment(loader=FileSystemLoader('./template'), trim_blocks=True, lstrip_blocks=True)
+    template = env.get_template('template.j2')
+
+    # Iterate over each service route
+    for service in values["serviceRoutes"]:
+        # Render the template for each service route
+        rendered = template.render(service)
+        
+        # Write the rendered content to a YAML file
+        with open("abc.yaml", "w") as output_file:
+            output_file.write(rendered)
+
+
+serviceRoutes:
+  gateways:
+    {% for gateway in gateways %}
+    - {{ gateway }}
+    {% endfor %}
+  hosts:
+    {% for host in hosts %}
+    - {{ host }}
+    {% endfor %}
+  http:
+    {% for item in http %}
+    - match:
+        - uri:
+            prefix: {{ item.match.prefix }}
+      {% if item.get('rewrite') %}
+      rewrite:
+        uri: {{ item.rewrite.uri }}
+      {% endif %}
+      route: 
+        - destination:
+            host: "{{ item['destination']['host'] }}"
+            port:
+              number: {{ item['destination']['port']['number'] }}
+          weight: {{ item['weight'] }}
+    {% endfor %}
+
+
+serviceRoutes:
+- sr: 
+  name: sr1
+  gateways:
+    - mesh
+    - "test.usnabk.com"
+  hosts:
+    - "1.us.bank-dns.com"
+    - "tes.us.bank-dns.com"
+  http:
+      - match:
+          prefix: "base_path"
+        route: 
+          - destination:
+              host: "us.bank-dns.com"
+              port:
+                number: 8080
+            weight: 100
+      - match:
+          prefix: "base_path"
+        rewrite:
+          uri: "base_path"
+        route: 
+          - destination:
+              host: "us.bank-dns.com"
+              port:
+                number: 8080
+            weight: 100
+  
