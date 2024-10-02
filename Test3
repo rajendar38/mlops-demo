@@ -1,0 +1,78 @@
+from kubernetes import client, config
+
+# Global variables (or you can pass these to functions if preferred)
+namespace = "default"
+new_namespace = "new-namespace"
+pod_name = "example-pod"
+
+# Function to list pods in the specified namespace
+def list_pods(namespace):
+    v1 = client.CoreV1Api()
+    pods = v1.list_namespaced_pod(namespace=namespace)
+    for pod in pods.items:
+        print(f"Pod: {pod.metadata.name}")
+
+# Function to create a new namespace
+def create_namespace(new_namespace):
+    v1 = client.CoreV1Api()
+    ns = client.V1Namespace(metadata=client.V1ObjectMeta(name=new_namespace))
+    v1.create_namespace(body=ns)
+    print(f"Namespace '{new_namespace}' created.")
+
+# Function to delete a pod
+def delete_pod(namespace, pod_name):
+    v1 = client.CoreV1Api()
+    v1.delete_namespaced_pod(name=pod_name, namespace=namespace)
+    print(f"Pod '{pod_name}' deleted from namespace '{namespace}'.")
+
+# Main function to run all operations
+def perform_k8s_operations(namespace, new_namespace, pod_name):
+    try:
+        # Static if blocks based on predefined conditions
+        if namespace == "default":
+            print(f"Working in the default namespace: {namespace}")
+            list_pods(namespace)
+        else:
+            print(f"Working in custom namespace: {namespace}")
+
+        # Static if block based on another condition
+        if new_namespace:
+            print(f"Creating a new namespace: {new_namespace}")
+            create_namespace(new_namespace)
+
+        # Another static block to decide whether to delete a pod
+        if pod_name:
+            print(f"Deleting pod: {pod_name}")
+            delete_pod(namespace, pod_name)
+
+        print("All Kubernetes operations completed successfully.")
+    except Exception as e:
+        print(f"An error occurred during operations: {e}")
+
+# This is where the main logic of the script resides
+def main():
+    # List of kubeconfig file paths
+    kubeconfig_files = ["path_to_first_kubeconfig", "path_to_second_kubeconfig"]
+
+    # Static if block to perform a check before starting operations
+    if len(kubeconfig_files) == 0:
+        print("No kubeconfig files provided. Exiting.")
+        return
+
+    # Loop through each kubeconfig and perform operations
+    for kubeconfig in kubeconfig_files:
+        try:
+            # Load the configuration from the kubeconfig file
+            config.load_kube_config(config_file=kubeconfig)
+
+            print(f"Performing operations on cluster: {kubeconfig}")
+            
+            # Run the Kubernetes operations with current global variables
+            perform_k8s_operations(namespace, new_namespace, pod_name)
+
+        except Exception as e:
+            print(f"Error loading kubeconfig {kubeconfig}: {e}")
+
+# This ensures that main() is executed only when the script is run directly
+if __name__ == "__main__":
+    main()
