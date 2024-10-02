@@ -1,0 +1,62 @@
+from kubernetes import client, config
+
+class KubernetesOperations:
+    def __init__(self):
+        # Initialize shared variables here
+        self.namespace = "default"
+        self.new_namespace = "new-namespace"
+        self.pod_name = "example-pod"
+
+    # Function to list pods in the specified namespace
+    def list_pods(self):
+        v1 = client.CoreV1Api()
+        pods = v1.list_namespaced_pod(namespace=self.namespace)
+        for pod in pods.items:
+            print(f"Pod: {pod.metadata.name}")
+
+    # Function to create a new namespace
+    def create_namespace(self):
+        v1 = client.CoreV1Api()
+        ns = client.V1Namespace(metadata=client.V1ObjectMeta(name=self.new_namespace))
+        v1.create_namespace(body=ns)
+        print(f"Namespace '{self.new_namespace}' created.")
+
+    # Function to delete a pod
+    def delete_pod(self):
+        v1 = client.CoreV1Api()
+        v1.delete_namespaced_pod(name=self.pod_name, namespace=self.namespace)
+        print(f"Pod '{self.pod_name}' deleted from namespace '{self.namespace}'.")
+
+    # Main function to run all operations
+    def perform_k8s_operations(self):
+        try:
+            self.list_pods()
+            self.create_namespace()
+            self.delete_pod()
+            print("All Kubernetes operations completed successfully.")
+        except Exception as e:
+            print(f"An error occurred during operations: {e}")
+
+# This is where the main logic of the script resides
+def main():
+    # List of kubeconfig file paths
+    kubeconfig_files = ["path_to_first_kubeconfig", "path_to_second_kubeconfig"]
+
+    # Loop through each kubeconfig and perform operations
+    for kubeconfig in kubeconfig_files:
+        try:
+            # Load the configuration from the kubeconfig file
+            config.load_kube_config(config_file=kubeconfig)
+
+            print(f"Performing operations on cluster: {kubeconfig}")
+            
+            # Instantiate the KubernetesOperations class and run the operations
+            kube_operations = KubernetesOperations()
+            kube_operations.perform_k8s_operations()
+
+        except Exception as e:
+            print(f"Error loading kubeconfig {kubeconfig}: {e}")
+
+# This ensures that main() is executed only when the script is run directly
+if __name__ == "__main__":
+    main()
