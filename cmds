@@ -1,0 +1,20 @@
+while true; do curl -s -o /dev/null -w "%{http_code}\n" http://sample-app.local; sleep 1; done
+
+
+FROM nginx:latest
+RUN echo "<html><body><h1>Image Version: nginx:latest</h1></body></html>" > /usr/share/nginx/html/index.html
+
+
+docker build -t your-docker-repo/sample-app:nginx-with-version .
+docker push your-docker-repo/sample-app:nginx-with-version
+
+
+docker build -t your-docker-repo/sample-app:nginx-with-version .
+docker push your-docker-repo/sample-app:nginx-with-version
+
+while true; do 
+  RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" http://sample-app.local)
+  CONTENT=$(curl -s http://sample-app.local | head -n 1)
+  echo "$(date): HTTP Status Code: $RESPONSE - Response Content: $CONTENT"
+  sleep 1
+done
